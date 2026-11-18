@@ -26,9 +26,9 @@ html {
 body {
   margin: 0;
   background:
-    radial-gradient(ellipse at 8% 10%, rgba(255, 111, 0, .28), transparent 35rem),
-    radial-gradient(ellipse at 92% 12%, rgba(106, 42, 168, .28), transparent 35rem),
-    linear-gradient(125deg, #ffbb82 0%, #ffeb79 48%, #c8a4e8 100%);
+    radial-gradient(ellipse at 8% 10%, rgba(235, 83, 164, .24), transparent 35rem),
+    radial-gradient(ellipse at 92% 12%, rgba(114, 69, 190, .24), transparent 35rem),
+    linear-gradient(125deg, #f5a2c6 0%, #ffeb8a 48%, #c6a5ec 100%);
   background-attachment: fixed;
 }
 
