@@ -1,273 +1,449 @@
-const dateForm = document.getElementById('dateForm');
-const clientNameInput = document.getElementById('clientName');
-const welcomeMessage = document.getElementById('welcomeMessage');
-const startDateInput = document.getElementById('startDate');
-const endDateInput = document.getElementById('endDate');
-const apiKeyInput = document.getElementById('apiKey');
-const loadingMessage = document.getElementById('loadingMessage');
-const errorMessage = document.getElementById('errorMessage');
-const gallery = document.getElementById('gallery');
-const galleryStatus = document.getElementById('galleryStatus');
-const spaceFact = document.getElementById('spaceFact');
-const detailModal = document.getElementById('detailModal');
-const closeModalButton = document.getElementById('closeModal');
-const modalMedia = document.getElementById('modalMedia');
-const modalDate = document.getElementById('modalDate');
-const modalTitle = document.getElementById('modalTitle');
-const modalCredit = document.getElementById('modalCredit');
-const modalExplanation = document.getElementById('modalExplanation');
-const earliestApodDate = '1995-06-16';
+const categoryFilter = document.getElementById('categoryFilter');
+const productSearch = document.getElementById('productSearch');
+const productGrid = document.getElementById('productGrid');
+const catalogStatus = document.getElementById('catalogStatus');
+const productCount = document.getElementById('productCount');
+const selectedList = document.getElementById('selectedList');
+const selectedHint = document.getElementById('selectedHint');
+const selectionCount = document.getElementById('selectionCount');
+const clearSelectionButton = document.getElementById('clearSelection');
+const generateButton = document.getElementById('generateRoutine');
+const chatMessages = document.getElementById('chatMessages');
+const chatWelcome = document.getElementById('chatWelcome');
+const chatForm = document.getElementById('chatForm');
+const chatInput = document.getElementById('chatInput');
+const sendMessageButton = document.getElementById('sendMessage');
+const clearChatButton = document.getElementById('clearChat');
+const selectedStorageKey = 'ritual-selected-products';
 
-const spaceFacts = [
-	'Neutron stars can spin hundreds of times every second.',
-	'There are more stars in the observable universe than grains of sand on Earth.',
-	'One day on Venus is longer than one year on Venus.',
-	'The footprints left on the Moon can last for millions of years.',
-	'Light from the Sun takes about eight minutes to reach Earth.'
-];
+let products = [];
+let selectedProductIds = loadSelectedProductIds();
+let conversationHistory = [];
+let routineProducts = [];
+let routineGenerated = false;
+let requestInProgress = false;
 
-function getDateString(date) {
-	return date.toISOString().slice(0, 10);
+function getWorkerEndpoint() {
+	const endpointSetting = document.querySelector('meta[name="routine-worker-url"]');
+	return endpointSetting ? endpointSetting.content : '';
 }
 
-function setDefaultDates() {
-	const today = new Date();
-	const latestDate = getDateString(today);
-	const lastAvailableDay = new Date(today);
-	lastAvailableDay.setUTCDate(lastAvailableDay.getUTCDate() - 1);
-	const startDate = new Date(lastAvailableDay);
-	startDate.setUTCDate(startDate.getUTCDate() - 8);
-	const endDate = getDateString(lastAvailableDay);
+function loadSelectedProductIds() {
+	try {
+		const savedIds = JSON.parse(localStorage.getItem(selectedStorageKey) || '[]');
+		if (!Array.isArray(savedIds)) {
+			return [];
+		}
 
-	startDateInput.value = getDateString(startDate);
-	endDateInput.value = endDate;
-	startDateInput.min = earliestApodDate;
-	endDateInput.min = earliestApodDate;
-	startDateInput.max = latestDate;
-	endDateInput.max = latestDate;
+		return savedIds;
+	} catch (error) {
+		return [];
+	}
 }
 
-function showRandomSpaceFact() {
-	const randomIndex = Math.floor(Math.random() * spaceFacts.length);
-	spaceFact.textContent = spaceFacts[randomIndex];
+function saveSelectedProductIds() {
+	try {
+		localStorage.setItem(selectedStorageKey, JSON.stringify(selectedProductIds));
+		return true;
+	} catch (error) {
+		showCatalogMessage('Your browser could not save selections. They may not persist after reload.');
+		return false;
+	}
 }
 
-function updateWelcomeMessage() {
-	const clientName = clientNameInput.value.trim();
+function showCatalogMessage(message, isError) {
+	catalogStatus.textContent = message;
+	catalogStatus.classList.toggle('is-error', Boolean(isError));
+}
 
-	if (clientName) {
-		welcomeMessage.textContent = `Welcome, ${clientName}! Ready to explore?`;
+function getCategoryLabel(category) {
+	return category.charAt(0).toUpperCase() + category.slice(1);
+}
+
+function getSelectedProducts() {
+	const selectedProducts = [];
+
+	for (let index = 0; index < products.length; index++) {
+		if (selectedProductIds.indexOf(products[index].id) !== -1) {
+			selectedProducts.push(products[index]);
+		}
+	}
+
+	return selectedProducts;
+}
+
+function createProductCard(product) {
+	const article = document.createElement('article');
+	article.className = 'product-card';
+
+	const selectButton = document.createElement('button');
+	selectButton.className = 'product-select';
+	selectButton.type = 'button';
+	selectButton.setAttribute('aria-pressed', selectedProductIds.indexOf(product.id) !== -1);
+	selectButton.setAttribute(
+		'aria-label',
+		`${selectedProductIds.indexOf(product.id) !== -1 ? 'Remove' : 'Add'} ${product.brand} ${product.name} ${
+			selectedProductIds.indexOf(product.id) !== -1 ? 'from' : 'to'
+		} selected products`
+	);
+
+	const productArt = document.createElement('span');
+	productArt.className = `product-art art-${product.category}`;
+
+	const artBrand = document.createElement('span');
+	artBrand.className = 'art-brand';
+	artBrand.textContent = product.brand;
+
+	const artMark = document.createElement('span');
+	artMark.className = 'art-mark';
+	artMark.setAttribute('aria-hidden', 'true');
+	artMark.textContent = product.brand.charAt(0);
+
+	const selectionMark = document.createElement('span');
+	selectionMark.className = 'selection-mark';
+	selectionMark.setAttribute('aria-hidden', 'true');
+	selectionMark.textContent = '✓';
+
+	productArt.appendChild(artBrand);
+	productArt.appendChild(artMark);
+	productArt.appendChild(selectionMark);
+
+	const productCopy = document.createElement('span');
+	productCopy.className = 'product-copy';
+
+	const brandName = document.createElement('span');
+	brandName.className = 'product-brand';
+	brandName.textContent = product.brand;
+
+	const productName = document.createElement('span');
+	productName.className = 'product-name';
+	productName.textContent = product.name;
+
+	const categoryName = document.createElement('span');
+	categoryName.className = 'product-category';
+	categoryName.textContent = getCategoryLabel(product.category);
+
+	productCopy.appendChild(brandName);
+	productCopy.appendChild(productName);
+	productCopy.appendChild(categoryName);
+	selectButton.appendChild(productArt);
+	selectButton.appendChild(productCopy);
+	selectButton.addEventListener('click', function () {
+		toggleProduct(product.id);
+	});
+
+	const description = document.createElement('details');
+	description.className = 'product-description';
+
+	const descriptionLabel = document.createElement('summary');
+	descriptionLabel.textContent = 'About this product';
+
+	const descriptionText = document.createElement('p');
+	descriptionText.textContent = product.description;
+
+	description.appendChild(descriptionLabel);
+	description.appendChild(descriptionText);
+	article.appendChild(selectButton);
+	article.appendChild(description);
+
+	return article;
+}
+
+function renderProducts() {
+	const category = categoryFilter.value;
+	const searchTerm = productSearch.value.trim().toLowerCase();
+	const matchingProducts = [];
+	productGrid.replaceChildren();
+
+	for (let index = 0; index < products.length; index++) {
+		const product = products[index];
+		const matchesCategory = category === 'all' || product.category === category;
+		const searchableText = `${product.name} ${product.brand} ${product.category} ${product.description}`.toLowerCase();
+		const matchesSearch = !searchTerm || searchableText.indexOf(searchTerm) !== -1;
+
+		if (matchesCategory && matchesSearch) {
+			matchingProducts.push(product);
+			productGrid.appendChild(createProductCard(product));
+		}
+	}
+
+	if (matchingProducts.length === 0) {
+		showCatalogMessage('No products match your search. Try another name, brand, or category.');
 		return;
 	}
 
-	welcomeMessage.textContent = 'Welcome, space explorers!';
+	showCatalogMessage(`Showing ${matchingProducts.length} of ${products.length} products.`);
 }
 
-function formatDate(dateString) {
-	const date = new Date(`${dateString}T12:00:00Z`);
-	return new Intl.DateTimeFormat('en-US', {
-		month: 'long',
-		day: 'numeric',
-		year: 'numeric',
-		timeZone: 'UTC'
-	}).format(date);
-}
-
-function validateDateRange(startDate, endDate) {
-	const startTime = Date.parse(`${startDate}T00:00:00Z`);
-	const endTime = Date.parse(`${endDate}T00:00:00Z`);
-	const daysBetween = (endTime - startTime) / (1000 * 60 * 60 * 24);
-
-	if (!Number.isFinite(startTime) || !Number.isFinite(endTime)) {
-		throw new Error('Choose a valid start date and end date.');
-	}
-
-	const today = getDateString(new Date());
-
-	if (startDate < earliestApodDate || endDate < earliestApodDate || endDate > today) {
-		throw new Error(`Choose APOD dates between ${earliestApodDate} and today.`);
-	}
-
-	if (daysBetween !== 8) {
-		throw new Error('Choose dates exactly eight days apart to load nine consecutive days.');
-	}
-}
-
-function createCard(item) {
-	const card = document.createElement('button');
-	card.className = 'card';
-	card.type = 'button';
-	card.setAttribute('aria-label', `Open ${item.title}, ${formatDate(item.date)}`);
-
-	const media = document.createElement('span');
-	media.className = 'card-media';
-
-	if (item.media_type === 'image') {
-		const image = document.createElement('img');
-		image.src = item.url;
-		image.alt = item.title;
-		image.loading = 'lazy';
-		media.appendChild(image);
-	} else {
-		const videoFallback = document.createElement('span');
-		videoFallback.className = 'fallback';
-		videoFallback.innerHTML = '<span><strong>VIDEO APOD</strong><small>Open to watch</small></span>';
-		media.appendChild(videoFallback);
-
-		const videoBadge = document.createElement('span');
-		videoBadge.className = 'video-badge';
-		videoBadge.textContent = '▶ VIDEO';
-		media.appendChild(videoBadge);
-	}
+function createSelectedItem(product) {
+	const item = document.createElement('li');
+	item.className = 'selected-item';
 
 	const copy = document.createElement('span');
-	copy.className = 'card-copy';
+	copy.className = 'selected-copy';
 
-	const date = document.createElement('span');
-	date.className = 'card-date';
-	date.textContent = formatDate(item.date);
+	const brand = document.createElement('span');
+	brand.className = 'selected-brand';
+	brand.textContent = product.brand;
 
-	const title = document.createElement('span');
-	title.className = 'card-title';
-	title.textContent = item.title;
+	const name = document.createElement('span');
+	name.className = 'selected-name';
+	name.textContent = product.name;
 
-	copy.appendChild(date);
-	copy.appendChild(title);
-	card.appendChild(media);
-	card.appendChild(copy);
-	card.addEventListener('click', function () {
-		openDetails(item);
+	const removeButton = document.createElement('button');
+	removeButton.className = 'remove-selected';
+	removeButton.type = 'button';
+	removeButton.textContent = 'Remove';
+	removeButton.setAttribute('aria-label', `Remove ${product.name}`);
+	removeButton.addEventListener('click', function () {
+		toggleProduct(product.id);
 	});
 
-	return card;
+	copy.appendChild(brand);
+	copy.appendChild(name);
+	item.appendChild(copy);
+	item.appendChild(removeButton);
+
+	return item;
 }
 
-function displayGallery(items) {
-	gallery.replaceChildren();
+function updateSelectedProducts() {
+	const selectedProducts = getSelectedProducts();
+	selectedList.replaceChildren();
 
-	for (let index = 0; index < items.length; index++) {
-		gallery.appendChild(createCard(items[index]));
+	for (let index = 0; index < selectedProducts.length; index++) {
+		selectedList.appendChild(createSelectedItem(selectedProducts[index]));
 	}
 
-	galleryStatus.textContent = `${items.length} days of discoveries`;
+	selectionCount.textContent = `${selectedProducts.length} selected`;
+	selectedHint.hidden = selectedProducts.length > 0;
+	clearSelectionButton.disabled = selectedProducts.length === 0;
+	generateButton.disabled = selectedProducts.length === 0 || requestInProgress;
 }
 
-function openDetails(item) {
-	modalMedia.replaceChildren();
-	modalDate.textContent = formatDate(item.date);
-	modalTitle.textContent = item.title;
-	modalExplanation.textContent = item.explanation;
+function toggleProduct(productId) {
+	const selectedIndex = selectedProductIds.indexOf(productId);
 
-	if (item.copyright) {
-		modalCredit.textContent = `Image credit: ${item.copyright}`;
-		modalCredit.hidden = false;
+	if (selectedIndex === -1) {
+		selectedProductIds.push(productId);
 	} else {
-		modalCredit.hidden = true;
+		selectedProductIds.splice(selectedIndex, 1);
 	}
 
-	if (item.media_type === 'image') {
-		const image = document.createElement('img');
-		image.src = item.hdurl || item.url;
-		image.alt = item.title;
-		modalMedia.appendChild(image);
+	renderProducts();
+	updateSelectedProducts();
+	saveSelectedProductIds();
+}
+
+function appendChatMessage(role, text) {
+	const message = document.createElement('div');
+	message.className = `chat-message message-${role}`;
+
+	const label = document.createElement('span');
+	label.className = 'message-label';
+	label.textContent = role === 'assistant' ? 'Ritual assistant' : 'You';
+
+	const body = document.createElement('p');
+	body.className = 'message-body';
+	body.textContent = text;
+
+	message.appendChild(label);
+	message.appendChild(body);
+	chatMessages.appendChild(message);
+	chatMessages.scrollTop = chatMessages.scrollHeight;
+	chatWelcome.hidden = true;
+	clearChatButton.disabled = false;
+}
+
+function appendChatError(text) {
+	const message = document.createElement('p');
+	message.className = 'chat-error';
+	message.setAttribute('role', 'alert');
+	message.textContent = text;
+	chatMessages.appendChild(message);
+	chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function addThinkingMessage() {
+	const message = document.createElement('div');
+	message.className = 'chat-message message-assistant thinking-message';
+	message.setAttribute('role', 'status');
+
+	const label = document.createElement('span');
+	label.className = 'message-label';
+	label.textContent = 'Ritual assistant';
+
+	const body = document.createElement('p');
+	body.className = 'message-body';
+	body.textContent = 'Thinking through your routine…';
+
+	message.appendChild(label);
+	message.appendChild(body);
+	chatMessages.appendChild(message);
+	chatMessages.scrollTop = chatMessages.scrollHeight;
+
+	return message;
+}
+
+function setRequestState(isInProgress) {
+	requestInProgress = isInProgress;
+	generateButton.disabled = getSelectedProducts().length === 0 || requestInProgress;
+	chatInput.disabled = !routineGenerated || requestInProgress;
+	sendMessageButton.disabled = !routineGenerated || requestInProgress;
+	clearChatButton.disabled = requestInProgress || conversationHistory.length === 0;
+
+	if (isInProgress) {
+		generateButton.classList.add('is-loading');
 	} else {
-		const videoLink = document.createElement('a');
-		videoLink.className = 'video-link';
-		videoLink.href = item.url;
-		videoLink.target = '_blank';
-		videoLink.rel = 'noopener noreferrer';
-		videoLink.textContent = 'Watch this APOD video on its source site';
-		modalMedia.appendChild(videoLink);
+		generateButton.classList.remove('is-loading');
 	}
-
-	detailModal.showModal();
 }
 
-function getApiItems(data) {
-	if (!Array.isArray(data)) {
-		throw new Error('NASA returned an unexpected response. Please try again.');
+async function requestRoutineAssistant(message) {
+	const workerEndpoint = getWorkerEndpoint();
+
+	if (!workerEndpoint || workerEndpoint.indexOf('YOUR-WORKER-NAME') !== -1) {
+		throw new Error('Connect your Cloudflare Worker first. Follow the setup steps in README.md.');
 	}
 
-	if (data.length !== 9) {
-		throw new Error(`NASA returned ${data.length} items instead of 9. Try another date range.`);
-	}
+	const response = await fetch(workerEndpoint, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			products: routineProducts.map(function (product) {
+				return {
+					name: product.name,
+					brand: product.brand,
+					category: product.category,
+					description: product.description
+				};
+			}),
+			messages: conversationHistory
+		})
+	});
 
-	for (let index = 0; index < data.length; index++) {
-		const item = data[index];
-		const hasSupportedMedia = item.media_type === 'image' || item.media_type === 'video';
-
-		if (!item.title || !item.date || !item.explanation || !item.url || !hasSupportedMedia) {
-			throw new Error('NASA returned an incomplete gallery item. Please try again.');
-		}
-	}
-
-	return data;
-}
-
-async function fetchGallery(event) {
-	event.preventDefault();
-	errorMessage.hidden = true;
-	errorMessage.textContent = '';
-	gallery.replaceChildren();
-	gallery.appendChild(loadingMessage);
-	galleryStatus.textContent = '';
-	loadingMessage.hidden = false;
-	const controller = new AbortController();
-	const timeoutId = setTimeout(function () {
-		controller.abort();
-	}, 15000);
+	let data;
 
 	try {
-		const startDate = startDateInput.value;
-		const endDate = endDateInput.value;
-		const apiKey = apiKeyInput.value.trim();
-
-		validateDateRange(startDate, endDate);
-
-		if (!apiKey) {
-			throw new Error('Enter a NASA API key. DEMO_KEY is available for testing.');
-		}
-
-		const apiUrl = new URL('https://api.nasa.gov/planetary/apod');
-		apiUrl.searchParams.set('start_date', startDate);
-		apiUrl.searchParams.set('end_date', endDate);
-		apiUrl.searchParams.set('api_key', apiKey);
-
-		const response = await fetch(apiUrl, { signal: controller.signal });
-		const data = await response.json();
-
-		if (!response.ok) {
-			const message = data.msg || data.message || `NASA API request failed (${response.status}).`;
-			throw new Error(message);
-		}
-
-		const items = getApiItems(data);
-		displayGallery(items);
+		data = await response.json();
 	} catch (error) {
-		if (error.name === 'AbortError') {
-			errorMessage.textContent = 'The NASA request timed out. Check your connection and try again.';
-		} else {
-			errorMessage.textContent = error.message || 'The gallery could not be loaded. Please try again.';
-		}
-		errorMessage.hidden = false;
-		galleryStatus.textContent = 'Gallery could not be loaded';
+		throw new Error('The routine service returned an unreadable response. Please try again.');
+	}
+
+	if (!response.ok) {
+		throw new Error(data.error || `The routine service returned an error (${response.status}).`);
+	}
+
+	if (!data.reply || typeof data.reply !== 'string') {
+		throw new Error('The routine service response was missing its reply. Please try again.');
+	}
+
+	return data.reply;
+}
+
+async function sendToAssistant(message) {
+	if (requestInProgress) {
+		return;
+	}
+
+	appendChatMessage('user', message);
+	conversationHistory.push({ role: 'user', content: message });
+	setRequestState(true);
+	const thinkingMessage = addThinkingMessage();
+
+	try {
+		const reply = await requestRoutineAssistant(message);
+		conversationHistory.push({ role: 'assistant', content: reply });
+		thinkingMessage.remove();
+		appendChatMessage('assistant', reply);
+		routineGenerated = true;
+	} catch (error) {
+		thinkingMessage.remove();
+		appendChatError(error.message || 'The routine could not be generated. Please try again.');
 	} finally {
-		clearTimeout(timeoutId);
-		loadingMessage.hidden = true;
+		setRequestState(false);
 	}
 }
 
-dateForm.addEventListener('submit', fetchGallery);
-clientNameInput.addEventListener('input', updateWelcomeMessage);
-closeModalButton.addEventListener('click', function () {
-	detailModal.close();
-});
-detailModal.addEventListener('click', function (event) {
-	if (event.target === detailModal) {
-		detailModal.close();
+async function loadProducts() {
+	try {
+		const response = await fetch('products.json');
+
+		if (!response.ok) {
+			throw new Error(`Product catalog could not be loaded (${response.status}).`);
+		}
+
+		const data = await response.json();
+
+		if (!Array.isArray(data)) {
+			throw new Error('The product catalog has an unexpected format.');
+		}
+
+		products = data;
+		const validIds = [];
+
+		for (let index = 0; index < products.length; index++) {
+			if (selectedProductIds.indexOf(products[index].id) !== -1) {
+				validIds.push(products[index].id);
+			}
+		}
+
+		selectedProductIds = validIds;
+		productCount.textContent = products.length;
+		renderProducts();
+		updateSelectedProducts();
+		saveSelectedProductIds();
+	} catch (error) {
+		showCatalogMessage(error.message || 'The product catalog could not be loaded.', true);
 	}
+}
+
+categoryFilter.addEventListener('change', renderProducts);
+productSearch.addEventListener('input', renderProducts);
+
+clearSelectionButton.addEventListener('click', function () {
+	selectedProductIds = [];
+	renderProducts();
+	updateSelectedProducts();
+	saveSelectedProductIds();
 });
 
-setDefaultDates();
-showRandomSpaceFact();
-galleryStatus.textContent = 'Choose a date range, then select Get Space Images.';
+generateButton.addEventListener('click', function () {
+	const selectedProducts = getSelectedProducts();
+
+	if (selectedProducts.length === 0 || requestInProgress) {
+		return;
+	}
+
+	routineProducts = selectedProducts.slice();
+	sendToAssistant(
+		'Create or update my personalized routine using only the selected products provided with this request. Explain the order of application, morning or evening use, and practical frequency or layering notes. Treat these products as my current selection.'
+	);
+});
+
+chatForm.addEventListener('submit', function (event) {
+	event.preventDefault();
+	const message = chatInput.value.trim();
+
+	if (!message || !routineGenerated || requestInProgress) {
+		return;
+	}
+
+	chatInput.value = '';
+	sendToAssistant(message);
+});
+
+clearChatButton.addEventListener('click', function () {
+	conversationHistory = [];
+	routineProducts = [];
+	routineGenerated = false;
+	chatMessages.replaceChildren(chatWelcome);
+	chatWelcome.hidden = false;
+	clearChatButton.disabled = true;
+	chatInput.disabled = true;
+	sendMessageButton.disabled = true;
+});
+
+loadProducts();

@@ -1,0 +1,7 @@
+name = "ritual-routine-assistant"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+[vars]
+OPENAI_MODEL = "gpt-4o-mini"
+ALLOWED_ORIGINS = "http://localhost:8000,http://127.0.0.1:8000,https://YOUR-SITE.example"

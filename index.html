@@ -3,132 +3,161 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#050914" />
+    <meta name="theme-color" content="#f8f5f0" />
     <meta
       name="description"
-      content="Explore nine days of NASA's Astronomy Picture of the Day."
+      content="Build a personalized beauty routine from products by L'Oréal brands."
     />
-    <title>APOD Explorer | NASA</title>
+    <meta
+      name="routine-worker-url"
+      content="https://YOUR-WORKER-NAME.YOUR-SUBDOMAIN.workers.dev/api/chat"
+    />
+    <title>Ritual | Your product-aware routine builder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="style.css" />
     <script src="script.js" defer></script>
   </head>
   <body>
-    <header class="topbar">
-      <a class="brand" href="#home" aria-label="APOD Explorer home">
-        <span class="orbit" aria-hidden="true"></span>
-        <span>
-          <strong>APOD EXPLORER</strong>
-          <small>NASA · Astronomy Picture of the Day</small>
-        </span>
+    <header class="site-header">
+      <a class="wordmark" href="#top" aria-label="Ritual home">
+        <span class="wordmark-mark" aria-hidden="true">R</span>
+        <span>ritual<span class="wordmark-period">.</span></span>
       </a>
-      <span class="tag">A new view of the universe, every day.</span>
+      <p class="header-note">A more thoughtful beauty routine starts here.</p>
+      <span class="header-edition">YOUR PERSONAL EDIT</span>
     </header>
 
-    <main id="home">
-      <section class="hero" aria-labelledby="pageTitle">
-        <p class="eyebrow">YOUR WINDOW TO THE COSMOS</p>
-        <p class="welcome-message" id="welcomeMessage" aria-live="polite">
-          Welcome, space explorers!
+    <main id="top">
+      <section class="intro">
+        <p class="eyebrow">THE EVERYDAY BEAUTY EDIT</p>
+        <h1>Good routines<br /><em>feel like you.</em></h1>
+        <p class="intro-copy">
+          Choose the products you love. We’ll help you turn them into a simple,
+          personal ritual—one considered step at a time.
         </p>
-        <h1 id="pageTitle">The universe,<br /><span>one day at a time.</span></h1>
-        <p class="intro">
-          A classroom-sized window to NASA's Astronomy Picture of the Day.
-          Explore nine days of discoveries, then open an image to uncover the
-          story behind it.
-        </p>
+        <div class="intro-stats" aria-label="About this product collection">
+          <span><strong id="productCount">—</strong> curated products</span>
+          <span class="stat-divider" aria-hidden="true"></span>
+          <span>From the L’Oréal family</span>
+        </div>
+      </section>
 
-        <form class="date-panel" id="dateForm">
-          <label class="personal-name-field">
-            Student, teacher, or classroom name <span>(optional)</span>
+      <section class="builder" aria-label="Choose products and build a routine">
+        <div class="catalog">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">01 — BUILD YOUR EDIT</p>
+              <h2>Find your favorites</h2>
+            </div>
+            <span class="selection-count" id="selectionCount" aria-live="polite">0 selected</span>
+          </div>
+
+          <div class="filters">
+            <label class="filter-label" for="categoryFilter">Category</label>
+            <select id="categoryFilter">
+              <option value="all">All categories</option>
+              <option value="skincare">Skincare</option>
+              <option value="haircare">Haircare</option>
+              <option value="makeup">Makeup</option>
+              <option value="fragrance">Fragrance</option>
+            </select>
+            <label class="search-label" for="productSearch">Search products</label>
             <input
-              id="clientName"
-              name="clientName"
-              type="text"
-              maxlength="60"
-              placeholder="For example, Ms. Korsah's class"
+              id="productSearch"
+              type="search"
+              placeholder="Search by name, brand, or concern"
               autocomplete="off"
             />
-          </label>
-          <label>
-            Start date
-            <input id="startDate" name="startDate" type="date" required />
-          </label>
-          <label>
-            End date
-            <input id="endDate" name="endDate" type="date" required />
-          </label>
-          <label class="api-key-field">
-            NASA API key
-            <input
-              id="apiKey"
-              name="apiKey"
-              type="password"
-              value="DEMO_KEY"
-              autocomplete="off"
-              spellcheck="false"
-              aria-describedby="apiHint"
-              required
-            />
-          </label>
-          <button type="submit">Get Space Images</button>
-          <p class="hint" id="apiHint">
-            Select nine consecutive days (the end date is eight days after
-            the start). APOD dates begin June 16, 1995. DEMO_KEY works for
-            trying this page; your key is sent only to NASA. Your name stays
-            on this page and is not included in the NASA request.
+          </div>
+
+          <p class="catalog-status" id="catalogStatus" role="status" aria-live="polite">
+            Loading products…
           </p>
-        </form>
-      </section>
-
-      <aside class="fact" aria-labelledby="factHeading">
-        <strong id="factHeading">DID YOU KNOW?</strong>
-        <p id="spaceFact"></p>
-      </aside>
-
-      <section class="gallery-section" aria-labelledby="galleryTitle">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">THE DAILY ARCHIVE</p>
-            <h2 id="galleryTitle">Nine days in space</h2>
-          </div>
-          <p id="galleryStatus" role="status" aria-live="polite"></p>
+          <div class="product-grid" id="productGrid" aria-label="Products"></div>
         </div>
 
-        <p class="error" id="errorMessage" role="alert" hidden></p>
-        <div class="gallery" id="gallery" aria-label="NASA Astronomy Picture of the Day gallery">
-          <div class="loading" id="loadingMessage" role="status" aria-live="polite" hidden>
-            <span class="spinner" aria-hidden="true"></span>
-            <span>
-              <strong>Gathering the latest discoveries…</strong>
-              <small>Connecting to NASA's Astronomy Picture of the Day API</small>
-            </span>
-          </div>
-        </div>
+        <aside class="routine-column" aria-label="Your selected products and routine chat">
+          <section class="selected-panel" aria-labelledby="selectedHeading">
+            <div class="section-heading compact-heading">
+              <div>
+                <p class="eyebrow">YOUR EDIT</p>
+                <h2 id="selectedHeading">Selected products</h2>
+              </div>
+              <button class="text-button" id="clearSelection" type="button" disabled>
+                Clear all
+              </button>
+            </div>
+            <p class="selected-hint" id="selectedHint">Your saved picks will appear here.</p>
+            <ul class="selected-list" id="selectedList" aria-live="polite"></ul>
+            <button class="primary-button generate-button" id="generateRoutine" type="button" disabled>
+              <span>Generate my routine</span>
+              <span aria-hidden="true">↗</span>
+            </button>
+            <p class="privacy-note">
+              Only your selected products are sent to the routine assistant.
+            </p>
+          </section>
+
+          <section class="chat-panel" aria-labelledby="chatHeading">
+            <div class="chat-heading">
+              <div>
+                <p class="eyebrow">02 — MAKE IT YOURS</p>
+                <h2 id="chatHeading">Your routine, in conversation</h2>
+              </div>
+              <button class="text-button" id="clearChat" type="button" disabled>
+                New chat
+              </button>
+            </div>
+            <div
+              class="chat-messages"
+              id="chatMessages"
+              role="log"
+              aria-live="polite"
+              aria-relevant="additions text"
+              aria-label="Routine conversation"
+            >
+              <div class="chat-welcome" id="chatWelcome">
+                <span class="welcome-sparkle" aria-hidden="true">✳</span>
+                <p>Your routine will take shape here.</p>
+                <span>Ask about order, frequency, or how to make it work for you.</span>
+              </div>
+            </div>
+            <form class="chat-form" id="chatForm">
+              <label class="visually-hidden" for="chatInput">Ask a follow-up question</label>
+              <input
+                id="chatInput"
+                name="message"
+                type="text"
+                maxlength="1200"
+                placeholder="Ask a follow-up question…"
+                autocomplete="off"
+                disabled
+              />
+              <button class="send-button" id="sendMessage" type="submit" aria-label="Send message" disabled>
+                <span aria-hidden="true">↑</span>
+              </button>
+            </form>
+            <p class="chat-note">Beauty guidance, not medical advice. Patch test new products.</p>
+          </section>
+        </aside>
       </section>
+
+      <p class="page-note">
+        Product names and descriptions are provided for discovery. Always check
+        the product packaging and official brand site for current details.
+      </p>
     </main>
 
-    <dialog class="modal" id="detailModal" aria-labelledby="modalTitle">
-      <div class="modal-card">
-        <button class="close" id="closeModal" type="button" aria-label="Close details">
-          &times;
-        </button>
-        <div class="modal-media" id="modalMedia"></div>
-        <div class="modal-copy">
-          <p class="eyebrow">NASA ASTRONOMY PICTURE OF THE DAY</p>
-          <p class="card-date" id="modalDate"></p>
-          <h2 id="modalTitle"></h2>
-          <p class="credit" id="modalCredit" hidden></p>
-          <p id="modalExplanation"></p>
-        </div>
-      </div>
-    </dialog>
-
-    <footer>
-      <p>Images and astronomy descriptions provided by NASA's APOD API.</p>
-      <p>Created by Richmond Kofi Korsah</p>
-      <a href="https://apod.nasa.gov/apod/astropix.html" target="_blank" rel="noopener noreferrer">
-        Visit NASA's APOD archive
-      </a>
+    <footer class="site-footer">
+      <a class="wordmark footer-wordmark" href="#top">ritual<span class="wordmark-period">.</span></a>
+      <p>Beauty, thoughtfully considered.</p>
+      <span>Created by Richmond Kofi Korsah</span>
+      <span>Product details may vary by market.</span>
     </footer>
   </body>
 </html>

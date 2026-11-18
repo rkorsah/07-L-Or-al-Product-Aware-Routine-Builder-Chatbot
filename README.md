@@ -1,50 +1,77 @@
-# APOD Explorer
+# Ritual — product-aware routine builder
 
-A responsive gallery for NASA's Astronomy Picture of the Day (APOD). The page
-loads nine consecutive days of APOD entries, shows a random space fact, and
-opens each entry in a detail dialog with its full-size image or video link,
-title, date, and explanation.
+A responsive beauty product picker and routine chat for products from CeraVe,
+L’Oréal Paris, Garnier, Lancôme, Kiehl’s, Maybelline, La Roche-Posay, and NYX.
+The catalog can be searched and filtered by category. Product descriptions are
+available on each card, selections persist in `localStorage`, and the assistant
+uses the selected product details and conversation history to create a routine
+and answer related follow-up questions.
 
-## Run the project
+## Run the page locally
 
-Open `index.html` in a modern browser while connected to the internet. Select
-a date range and choose **Get Space Images** to fetch data from NASA's public
-APOD API. The page uses `DEMO_KEY` by default. For higher API limits, request
-a key at [api.nasa.gov](https://api.nasa.gov/) and enter it in the NASA API
-key field. The key is sent to NASA with the API request and is not saved by
-this page.
+The app loads `products.json` with `fetch`, so serve the project over HTTP
+instead of opening `index.html` directly. From this folder, run:
 
-Students, teachers, or classrooms can enter a name for a personalized welcome.
-The name stays in the page and is not sent to NASA.
+```powershell
+py -m http.server 8000
+```
 
-Choose nine consecutive dates, with the end date exactly eight days after the
-start date. APOD dates begin June 16, 1995, and cannot be later than today.
-APOD video entries are marked in the gallery and include a link to watch the
-video in the detail dialog.
+Then open `http://localhost:8000`. Product browsing, search, selection, and
+saved selections work without an AI service.
 
-## Reflections
+## Deploy the Cloudflare Worker
 
-### Working with APIs
+The browser sends the selected product data and chat history to the Worker.
+The OpenAI API key is stored as a Worker secret and is never placed in the
+page's JavaScript or sent to the browser.
 
-The APOD API made it possible to build a changing gallery without maintaining
-an image collection in the project. The date range and API key are sent as
-query parameters, and the page checks the response before displaying the
-gallery. A key lesson is that API responses can contain different media types,
-so image and video entries need separate display behavior.
+1. Install Node.js and create or sign in to a Cloudflare account.
+2. From this project folder, authenticate Wrangler:
 
-### Debugging
+   ```powershell
+   npx wrangler login
+   ```
 
-The date range is validated before the request because the gallery needs nine
-consecutive entries. The loading message stays visible until the request
-finishes, and API or network errors are shown on the page rather than leaving
-an empty gallery without an explanation. Checking the browser's network tab
-and the API response is useful when a request fails or returns an unexpected
-number of entries.
+3. Store your OpenAI API key as a Cloudflare secret:
 
-### LinkedIn post draft
+   ```powershell
+   npx wrangler secret put OPENAI_API_KEY
+   ```
 
-I built APOD Explorer, a responsive NASA Astronomy Picture of the Day gallery.
-It fetches nine days of astronomy images and videos, includes a detail view
-with explanations, and adds a daily random space fact. This project helped me
-practice working with an API, handling loading and error states, and making
-interactive content accessible across screen sizes.
+   Enter the key when prompted. Do not put it in `index.html`, `script.js`,
+   `wrangler.toml`, or any other checked-in file.
+
+4. In `wrangler.toml`, replace `https://YOUR-SITE.example` in
+   `ALLOWED_ORIGINS` with the origin serving this page. Keep the local origin
+   if you also want to use the deployed Worker while testing at
+   `http://localhost:8000`.
+5. Deploy the Worker:
+
+   ```powershell
+   npx wrangler deploy
+   ```
+
+6. Copy the deployed Worker URL (it ends in `workers.dev`) into the
+   `routine-worker-url` meta tag in `index.html`, adding `/api/chat` at the
+   end. For example:
+
+   ```html
+   <meta name="routine-worker-url" content="https://your-worker.your-account.workers.dev/api/chat" />
+   ```
+
+7. Publish the static page and visit the Worker health endpoint at
+   `https://your-worker.your-account.workers.dev/health`. It should return
+   `{"status":"ok"}`.
+
+The Worker accepts only configured browser origins when an `Origin` header is
+present. CORS is not authentication; for a public production site, consider
+adding Cloudflare rate limiting to help protect your API usage.
+
+## Product and safety notes
+
+`products.json` is a small example catalog, not a live product feed. Product
+formulas and availability can change by market; verify current packaging and
+official product information. The assistant is prompted to avoid diagnosing
+conditions or inventing directions and to recommend professional care for
+persistent irritation or ingredient safety concerns. Its responses are
+informational, not medical advice.

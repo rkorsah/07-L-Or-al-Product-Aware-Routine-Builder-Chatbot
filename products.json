@@ -1,0 +1,107 @@
+[
+  {
+    "id": "cerave-hydrating-cleanser",
+    "name": "Hydrating Facial Cleanser",
+    "brand": "CeraVe",
+    "category": "skincare",
+    "description": "A non-foaming face cleanser with ceramides and hyaluronic acid, designed to cleanse without leaving skin feeling tight."
+  },
+  {
+    "id": "cerave-moisturizing-cream",
+    "name": "Moisturizing Cream",
+    "brand": "CeraVe",
+    "category": "skincare",
+    "description": "A rich, fragrance-free moisturizer with ceramides and hyaluronic acid for dry skin on the face and body."
+  },
+  {
+    "id": "cerave-am-lotion",
+    "name": "AM Facial Moisturizing Lotion SPF 30",
+    "brand": "CeraVe",
+    "category": "skincare",
+    "description": "A daily facial moisturizer with broad-spectrum SPF 30 and ceramides. Apply generously before sun exposure and reapply as directed on the label."
+  },
+  {
+    "id": "loreal-revitalift-serum",
+    "name": "Revitalift 1.5% Pure Hyaluronic Acid Serum",
+    "brand": "L’Oréal Paris",
+    "category": "skincare",
+    "description": "A lightweight facial serum formulated with hyaluronic acid to help skin feel hydrated and appear smoother."
+  },
+  {
+    "id": "loreal-true-match",
+    "name": "True Match Super-Blendable Foundation",
+    "brand": "L’Oréal Paris",
+    "category": "makeup",
+    "description": "A blendable liquid foundation available in a range of shades and finishes. Match the shade to your skin tone and follow the package directions."
+  },
+  {
+    "id": "loreal-elvive-shampoo",
+    "name": "Elvive Hyaluron Plump Hydrating Shampoo",
+    "brand": "L’Oréal Paris",
+    "category": "haircare",
+    "description": "A hydrating shampoo from the Hyaluron Plump haircare range. Massage into wet hair and rinse thoroughly."
+  },
+  {
+    "id": "garnier-micellar-water",
+    "name": "SkinActive Micellar Cleansing Water",
+    "brand": "Garnier",
+    "category": "skincare",
+    "description": "A micellar water cleanser for removing makeup and cleansing skin. Use with a cotton pad and follow the product label."
+  },
+  {
+    "id": "garnier-vitamin-c-serum",
+    "name": "SkinActive Vitamin C Serum",
+    "brand": "Garnier",
+    "category": "skincare",
+    "description": "A brightening facial serum featuring vitamin C. Introduce gradually, follow the package directions, and wear sunscreen during the day."
+  },
+  {
+    "id": "garnier-fructis-shampoo",
+    "name": "Fructis Hair Filler + Hyaluronic Moisture Shampoo",
+    "brand": "Garnier",
+    "category": "haircare",
+    "description": "A moisturizing shampoo from the Fructis Hair Filler range. Work through wet hair and rinse well."
+  },
+  {
+    "id": "lancome-genifique",
+    "name": "Advanced Génifique Serum",
+    "brand": "Lancôme",
+    "category": "skincare",
+    "description": "A lightweight face serum intended for use as part of a daily skincare routine. Check the current packaging for ingredients and directions."
+  },
+  {
+    "id": "lancome-idole",
+    "name": "Idôle Eau de Parfum",
+    "brand": "Lancôme",
+    "category": "fragrance",
+    "description": "A modern floral eau de parfum. Apply as directed, avoiding eyes and irritated skin."
+  },
+  {
+    "id": "kiehls-ultra-facial-cream",
+    "name": "Ultra Facial Cream",
+    "brand": "Kiehl’s",
+    "category": "skincare",
+    "description": "A daily facial moisturizer formulated to help skin feel soft and hydrated. Use after cleansing and serum."
+  },
+  {
+    "id": "maybelline-lash-sensational",
+    "name": "Lash Sensational Washable Mascara",
+    "brand": "Maybelline New York",
+    "category": "makeup",
+    "description": "A washable mascara for defining lashes. Use only around the eye area as directed and replace according to package guidance."
+  },
+  {
+    "id": "la-roche-posay-toleriane-cleanser",
+    "name": "Toleriane Hydrating Gentle Cleanser",
+    "brand": "La Roche-Posay",
+    "category": "skincare",
+    "description": "A gentle facial cleanser formulated for normal to dry skin. Use according to the product label and rinse as directed."
+  },
+  {
+    "id": "nyx-bare-with-me-concealer",
+    "name": "Bare With Me Concealer Serum",
+    "brand": "NYX Professional Makeup",
+    "category": "makeup",
+    "description": "A serum-style concealer for targeted complexion coverage. Apply a small amount and blend as desired."
+  }
+]
