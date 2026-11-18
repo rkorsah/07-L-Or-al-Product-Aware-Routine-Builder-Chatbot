@@ -24,13 +24,11 @@ html {
 }
 
 body {
-  min-width: 320px;
   margin: 0;
   background:
-    radial-gradient(ellipse at 12% 12%, rgba(247, 126, 54, .3), transparent 32rem),
-    radial-gradient(ellipse at 88% 16%, rgba(137, 86, 196, .24), transparent 34rem),
-    radial-gradient(ellipse at 58% 82%, rgba(242, 197, 54, .32), transparent 36rem),
-    linear-gradient(135deg, #fff5e9 0%, #fff9e8 52%, #f5edff 100%);
+    radial-gradient(ellipse at 8% 10%, rgba(255, 111, 0, .28), transparent 35rem),
+    radial-gradient(ellipse at 92% 12%, rgba(106, 42, 168, .28), transparent 35rem),
+    linear-gradient(125deg, #ffbb82 0%, #ffeb79 48%, #c8a4e8 100%);
   background-attachment: fixed;
 }
 
@@ -857,7 +855,7 @@ main,
   }
 
   .routine-column {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     align-items: start;
   }
 }
@@ -887,7 +885,7 @@ main,
   }
 
   .intro h1 {
-    font-size: clamp(3.3rem, 16vw, 5rem);
+    font-size: clamp(2.5rem, 11vw, 3.8rem);
   }
 
   .intro-copy {
@@ -913,6 +911,7 @@ main,
   }
 
   .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
   }
 
