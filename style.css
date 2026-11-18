@@ -99,12 +99,17 @@ main,
 .header-note,
 .header-edition {
   margin: 0;
-  color: var(--muted);
+  color: var(--ink);
   font-size: .77rem;
 }
 
+.header-note {
+  font-size: .9rem;
+  font-weight: 600;
+}
+
 .header-edition {
-  font-size: .64rem;
+  font-size: .75rem;
   font-weight: 700;
   letter-spacing: .16em;
 }
@@ -868,15 +873,32 @@ main,
   }
 
   .site-header {
-    min-height: 68px;
+    display: grid;
+    grid-template-columns: max-content max-content minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    column-gap: 10px;
+    row-gap: 5px;
+    min-height: 78px;
+    padding: 10px 0;
   }
 
   .header-note {
-    display: none;
+    display: block;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    font-size: .78rem;
+  }
+
+  .direction-toggle {
+    grid-column: 2;
+    grid-row: 1;
   }
 
   .header-edition {
-    font-size: .55rem;
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    font-size: .7rem;
   }
 
   .intro {
