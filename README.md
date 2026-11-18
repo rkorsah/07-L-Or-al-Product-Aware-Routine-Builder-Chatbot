@@ -5,8 +5,10 @@ L’Oréal Paris, Garnier, Lancôme, Kiehl’s, Maybelline, La Roche-Posay, and 
 The catalog can be searched and filtered by category. Product descriptions are
 available on each card, selections persist in `localStorage`, and the assistant
 uses the selected product details and conversation history to create a routine
-and answer related follow-up questions. The chat includes an RTL layout toggle
-and an optional current-web-sources setting that displays clickable citations.
+and answer related follow-up questions. The page also includes an optional,
+user-controlled synthesized ambient music loop with a volume slider, an RTL
+layout toggle, and a current-web-sources setting that displays clickable
+citations.
 
 ## Run the page locally
 
@@ -82,3 +84,9 @@ official product information. The assistant is prompted to avoid diagnosing
 conditions or inventing directions and to recommend professional care for
 persistent irritation or ingredient safety concerns. Its responses are
 informational, not medical advice.
+
+Product card photos are linked from Open Beauty Facts contributor uploads.
+Those images are shared under the
+[CC BY-SA 3.0 license](https://creativecommons.org/licenses/by-sa/3.0/);
+catalog items without a verified matching photo use the built-in branded
+artwork instead.

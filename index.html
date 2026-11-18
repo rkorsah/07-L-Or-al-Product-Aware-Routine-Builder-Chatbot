@@ -54,6 +54,24 @@
           <span class="stat-divider" aria-hidden="true"></span>
           <span>From the L’Oréal family</span>
         </div>
+        <div class="ambient-controls" role="group" aria-label="Ambient music controls">
+          <button
+            class="music-toggle"
+            id="musicToggle"
+            type="button"
+            aria-pressed="false"
+          >
+            <span class="music-icon" aria-hidden="true">♫</span>
+            <span id="musicToggleText">Play ambient music</span>
+          </button>
+          <label class="music-volume-control" for="musicVolume">
+            <span>Volume</span>
+            <input id="musicVolume" type="range" min="0" max="100" value="35" />
+          </label>
+          <span class="music-status" id="musicStatus" role="status" aria-live="polite">
+            Optional soft instrumental loop
+          </span>
+        </div>
       </section>
 
       <section class="builder" aria-label="Choose products and build a routine">
@@ -164,6 +182,9 @@
       <p class="page-note">
         Product names and descriptions are provided for discovery. Always check
         the product packaging and official brand site for current details.
+        Product photos are from
+        <a href="https://world.openbeautyfacts.org/" target="_blank" rel="noopener noreferrer">Open Beauty Facts contributors</a>
+        under the CC BY-SA 3.0 license.
       </p>
     </main>
 

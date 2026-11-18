@@ -4,6 +4,7 @@
     "name": "Hydrating Facial Cleanser",
     "brand": "CeraVe",
     "category": "skincare",
+    "image": "https://images.openbeautyfacts.org/images/products/360/600/053/7675/front_en.3.400.jpg",
     "description": "A non-foaming face cleanser with ceramides and hyaluronic acid, designed to cleanse without leaving skin feeling tight."
   },
   {
@@ -11,6 +12,7 @@
     "name": "Moisturizing Cream",
     "brand": "CeraVe",
     "category": "skincare",
+    "image": "https://images.openbeautyfacts.org/images/products/360/600/053/7330/front_en.5.400.jpg",
     "description": "A rich, fragrance-free moisturizer with ceramides and hyaluronic acid for dry skin on the face and body."
   },
   {
@@ -18,6 +20,7 @@
     "name": "AM Facial Moisturizing Lotion SPF 30",
     "brand": "CeraVe",
     "category": "skincare",
+    "image": "https://images.openbeautyfacts.org/images/products/079/337/924/5584/front_en.3.400.jpg",
     "description": "A daily facial moisturizer with broad-spectrum SPF 30 and ceramides. Apply generously before sun exposure and reapply as directed on the label."
   },
   {
@@ -25,6 +28,7 @@
     "name": "Revitalift 1.5% Pure Hyaluronic Acid Serum",
     "brand": "L’Oréal Paris",
     "category": "skincare",
+    "image": "https://images.openbeautyfacts.org/images/products/007/124/937/7512/front_en.15.400.jpg",
     "description": "A lightweight facial serum formulated with hyaluronic acid to help skin feel hydrated and appear smoother."
   },
   {
@@ -32,6 +36,7 @@
     "name": "True Match Super-Blendable Foundation",
     "brand": "L’Oréal Paris",
     "category": "makeup",
+    "image": "https://images.openbeautyfacts.org/images/products/360/052/284/0114/front_en.3.400.jpg",
     "description": "A blendable liquid foundation available in a range of shades and finishes. Match the shade to your skin tone and follow the package directions."
   },
   {
@@ -46,6 +51,7 @@
     "name": "SkinActive Micellar Cleansing Water",
     "brand": "Garnier",
     "category": "skincare",
+    "image": "https://images.openbeautyfacts.org/images/products/060/308/407/8028/front_en.3.400.jpg",
     "description": "A micellar water cleanser for removing makeup and cleansing skin. Use with a cotton pad and follow the product label."
   },
   {
@@ -53,6 +59,7 @@
     "name": "SkinActive Vitamin C Serum",
     "brand": "Garnier",
     "category": "skincare",
+    "image": "https://images.openbeautyfacts.org/images/products/360/054/253/6837/front_nl.7.400.jpg",
     "description": "A brightening facial serum featuring vitamin C. Introduce gradually, follow the package directions, and wear sunscreen during the day."
   },
   {
@@ -67,6 +74,7 @@
     "name": "Advanced Génifique Serum",
     "brand": "Lancôme",
     "category": "skincare",
+    "image": "https://images.openbeautyfacts.org/images/products/361/427/278/3478/front_en.6.400.jpg",
     "description": "A lightweight face serum intended for use as part of a daily skincare routine. Check the current packaging for ingredients and directions."
   },
   {
@@ -74,6 +82,7 @@
     "name": "Idôle Eau de Parfum",
     "brand": "Lancôme",
     "category": "fragrance",
+    "image": "https://images.openbeautyfacts.org/images/products/361/427/263/9638/front_nl.3.400.jpg",
     "description": "A modern floral eau de parfum. Apply as directed, avoiding eyes and irritated skin."
   },
   {
@@ -81,6 +90,7 @@
     "name": "Ultra Facial Cream",
     "brand": "Kiehl’s",
     "category": "skincare",
+    "image": "https://images.openbeautyfacts.org/images/products/360/597/502/8799/front_en.4.400.jpg",
     "description": "A daily facial moisturizer formulated to help skin feel soft and hydrated. Use after cleansing and serum."
   },
   {
@@ -88,6 +98,7 @@
     "name": "Lash Sensational Washable Mascara",
     "brand": "Maybelline New York",
     "category": "makeup",
+    "image": "https://images.openbeautyfacts.org/images/products/360/053/114/3459/front_en.5.400.jpg",
     "description": "A washable mascara for defining lashes. Use only around the eye area as directed and replace according to package guidance."
   },
   {
@@ -95,6 +106,7 @@
     "name": "Toleriane Hydrating Gentle Cleanser",
     "brand": "La Roche-Posay",
     "category": "skincare",
+    "image": "https://images.openbeautyfacts.org/images/products/333/787/554/5778/front_en.9.400.jpg",
     "description": "A gentle facial cleanser formulated for normal to dry skin. Use according to the product label and rinse as directed."
   },
   {
@@ -102,6 +114,7 @@
     "name": "Bare With Me Concealer Serum",
     "brand": "NYX Professional Makeup",
     "category": "makeup",
+    "image": "https://images.openbeautyfacts.org/images/products/080/089/712/9781/front_nl.11.400.jpg",
     "description": "A serum-style concealer for targeted complexion coverage. Apply a small amount and blend as desired."
   }
 ]

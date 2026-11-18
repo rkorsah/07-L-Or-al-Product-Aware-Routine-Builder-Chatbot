@@ -16,7 +16,23 @@ const sendMessageButton = document.getElementById('sendMessage');
 const clearChatButton = document.getElementById('clearChat');
 const webSearchToggle = document.getElementById('webSearchToggle');
 const directionToggle = document.getElementById('directionToggle');
+const musicToggle = document.getElementById('musicToggle');
+const musicToggleText = document.getElementById('musicToggleText');
+const musicVolume = document.getElementById('musicVolume');
+const musicStatus = document.getElementById('musicStatus');
 const selectedStorageKey = 'ritual-selected-products';
+const ambientChords = [
+	[130.81, 164.81, 196.00, 246.94],
+	[110.00, 130.81, 164.81, 196.00],
+	[87.31, 110.00, 130.81, 164.81],
+	[98.00, 123.47, 146.83, 196.00]
+];
+const ambientMelodies = [
+	[659.25, 783.99, 880.00],
+	[659.25, 587.33, 523.25],
+	[587.33, 659.25, 783.99],
+	[587.33, 523.25, 659.25]
+];
 
 let products = [];
 let selectedProductIds = loadSelectedProductIds();
@@ -24,10 +40,144 @@ let conversationHistory = [];
 let routineProducts = [];
 let routineGenerated = false;
 let requestInProgress = false;
+let ambientAudioContext = null;
+let ambientMasterGain = null;
+let ambientChordTimer = null;
+let ambientChordIndex = 0;
+let ambientMusicPlaying = false;
+let ambientMusicStarting = false;
 
 function getWorkerEndpoint() {
 	const endpointSetting = document.querySelector('meta[name="routine-worker-url"]');
 	return endpointSetting ? endpointSetting.content : '';
+}
+
+function getAudioContextConstructor() {
+	return window.AudioContext || window.webkitAudioContext;
+}
+
+function updateAmbientVolume() {
+	if (!ambientAudioContext || !ambientMasterGain) {
+		return;
+	}
+
+	const targetVolume = Number(musicVolume.value) / 100 * 0.35;
+	ambientMasterGain.gain.cancelScheduledValues(ambientAudioContext.currentTime);
+	ambientMasterGain.gain.setTargetAtTime(targetVolume, ambientAudioContext.currentTime, 0.2);
+}
+
+function playAmbientNote(frequency, startTime) {
+	const noteOscillator = ambientAudioContext.createOscillator();
+	const noteGain = ambientAudioContext.createGain();
+	const noteEnd = startTime + 2.2;
+
+	noteOscillator.type = 'sine';
+	noteOscillator.frequency.setValueAtTime(frequency, startTime);
+	noteGain.gain.setValueAtTime(0, startTime);
+	noteGain.gain.linearRampToValueAtTime(0.12, startTime + 0.4);
+	noteGain.gain.exponentialRampToValueAtTime(0.001, noteEnd);
+	noteOscillator.connect(noteGain);
+	noteGain.connect(ambientMasterGain);
+	noteOscillator.start(startTime);
+	noteOscillator.stop(noteEnd + 0.1);
+}
+
+function playAmbientChord(chordIndex) {
+	const currentTime = ambientAudioContext.currentTime;
+	const chordGain = ambientAudioContext.createGain();
+	const chordEnd = currentTime + 8;
+	const chordNotes = ambientChords[chordIndex];
+	const melodyNotes = ambientMelodies[chordIndex];
+
+	chordGain.gain.setValueAtTime(0, currentTime);
+	chordGain.gain.linearRampToValueAtTime(0.36, currentTime + 2);
+	chordGain.gain.setValueAtTime(0.36, currentTime + 6);
+	chordGain.gain.linearRampToValueAtTime(0, chordEnd);
+	chordGain.connect(ambientMasterGain);
+
+	for (let noteIndex = 0; noteIndex < chordNotes.length; noteIndex++) {
+		const noteOscillator = ambientAudioContext.createOscillator();
+		const noteGain = ambientAudioContext.createGain();
+
+		noteOscillator.type = 'sine';
+		noteOscillator.frequency.setValueAtTime(chordNotes[noteIndex], currentTime);
+		noteGain.gain.setValueAtTime(0.16, currentTime);
+		noteOscillator.connect(noteGain);
+		noteGain.connect(chordGain);
+		noteOscillator.start(currentTime);
+		noteOscillator.stop(chordEnd + 0.1);
+	}
+
+	for (let melodyIndex = 0; melodyIndex < melodyNotes.length; melodyIndex++) {
+		playAmbientNote(melodyNotes[melodyIndex], currentTime + 1 + melodyIndex * 2.5);
+	}
+}
+
+async function startAmbientMusic() {
+	const AudioContextConstructor = getAudioContextConstructor();
+
+	if (ambientMusicStarting || ambientMusicPlaying) {
+		return;
+	}
+
+	if (!AudioContextConstructor) {
+		musicStatus.textContent = 'Ambient music is not supported in this browser.';
+		return;
+	}
+
+	ambientMusicStarting = true;
+	musicToggle.disabled = true;
+
+	try {
+		if (!ambientAudioContext) {
+			ambientAudioContext = new AudioContextConstructor();
+			ambientMasterGain = ambientAudioContext.createGain();
+			const lowPassFilter = ambientAudioContext.createBiquadFilter();
+
+			lowPassFilter.type = 'lowpass';
+			lowPassFilter.frequency.setValueAtTime(1200, ambientAudioContext.currentTime);
+			ambientMasterGain.gain.setValueAtTime(0, ambientAudioContext.currentTime);
+			ambientMasterGain.connect(lowPassFilter);
+			lowPassFilter.connect(ambientAudioContext.destination);
+		}
+
+		await ambientAudioContext.resume();
+		updateAmbientVolume();
+		ambientMusicPlaying = true;
+		musicToggle.setAttribute('aria-pressed', 'true');
+		musicToggleText.textContent = 'Pause ambient music';
+		musicStatus.textContent = 'Soft ambient music is playing.';
+		playAmbientChord(ambientChordIndex);
+		ambientChordTimer = setInterval(function () {
+			ambientChordIndex = (ambientChordIndex + 1) % ambientChords.length;
+			playAmbientChord(ambientChordIndex);
+		}, 8000);
+		ambientMusicStarting = false;
+		musicToggle.disabled = false;
+	} catch (error) {
+		ambientMusicPlaying = false;
+		ambientMusicStarting = false;
+		musicToggle.disabled = false;
+		musicStatus.textContent = 'Ambient music could not start. Try again or check your browser audio settings.';
+	}
+}
+
+function stopAmbientMusic() {
+	ambientMusicPlaying = false;
+
+	if (ambientChordTimer) {
+		clearInterval(ambientChordTimer);
+		ambientChordTimer = null;
+	}
+
+	if (ambientAudioContext && ambientMasterGain) {
+		ambientMasterGain.gain.cancelScheduledValues(ambientAudioContext.currentTime);
+		ambientMasterGain.gain.setTargetAtTime(0, ambientAudioContext.currentTime, 0.35);
+	}
+
+	musicToggle.setAttribute('aria-pressed', 'false');
+	musicToggleText.textContent = 'Play ambient music';
+	musicStatus.textContent = 'Ambient music is paused.';
 }
 
 function loadSelectedProductIds() {
@@ -91,6 +241,21 @@ function createProductCard(product) {
 
 	const productArt = document.createElement('span');
 	productArt.className = `product-art art-${product.category}`;
+
+	if (product.image) {
+		const productImage = document.createElement('img');
+		productImage.className = 'product-image';
+		productImage.alt = `${product.brand} ${product.name} packaging`;
+		productImage.loading = 'lazy';
+		productImage.addEventListener('load', function () {
+			productArt.classList.add('has-image');
+		});
+		productImage.addEventListener('error', function () {
+			productImage.remove();
+		});
+		productImage.src = product.image;
+		productArt.appendChild(productImage);
+	}
 
 	const artBrand = document.createElement('span');
 	artBrand.className = 'art-brand';
@@ -486,5 +651,16 @@ directionToggle.addEventListener('click', function () {
 	document.documentElement.dir = useRightToLeft ? 'rtl' : 'ltr';
 	directionToggle.setAttribute('aria-pressed', useRightToLeft);
 });
+
+musicToggle.addEventListener('click', function () {
+	if (ambientMusicPlaying) {
+		stopAmbientMusic();
+		return;
+	}
+
+	startAmbientMusic();
+});
+
+musicVolume.addEventListener('input', updateAmbientVolume);
 
 loadProducts();
