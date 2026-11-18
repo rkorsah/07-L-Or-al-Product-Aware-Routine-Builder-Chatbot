@@ -27,8 +27,11 @@ body {
   min-width: 320px;
   margin: 0;
   background:
-    radial-gradient(ellipse at 2% 5%, rgba(227, 165, 53, .1), transparent 25rem),
-    var(--paper);
+    radial-gradient(ellipse at 12% 12%, rgba(247, 126, 54, .3), transparent 32rem),
+    radial-gradient(ellipse at 88% 16%, rgba(137, 86, 196, .24), transparent 34rem),
+    radial-gradient(ellipse at 58% 82%, rgba(242, 197, 54, .32), transparent 36rem),
+    linear-gradient(135deg, #fff5e9 0%, #fff9e8 52%, #f5edff 100%);
+  background-attachment: fixed;
 }
 
 button,
@@ -106,6 +109,25 @@ main,
   font-size: .64rem;
   font-weight: 700;
   letter-spacing: .16em;
+}
+
+.direction-toggle {
+  min-width: 46px;
+  padding: 6px 9px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--white);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: .63rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.direction-toggle[aria-pressed='true'] {
+  border-color: var(--red);
+  background: var(--soft-red);
+  color: #a71934;
 }
 
 .intro {
@@ -293,7 +315,7 @@ main,
   border: 0;
   background: transparent;
   cursor: pointer;
-  text-align: left;
+  text-align: start;
 }
 
 .product-select[aria-pressed='true'] {
@@ -316,7 +338,7 @@ main,
 
 .product-art::after {
   position: absolute;
-  right: -15px;
+  inset-inline-end: -15px;
   bottom: -37px;
   width: 120px;
   height: 120px;
@@ -357,7 +379,7 @@ main,
 
 .art-mark {
   position: absolute;
-  right: 20px;
+  inset-inline-end: 20px;
   bottom: -24px;
   color: rgba(255, 255, 255, .82);
   font-family: var(--serif);
@@ -371,7 +393,7 @@ main,
   position: absolute;
   z-index: 2;
   top: 8px;
-  right: 8px;
+  inset-inline-end: 8px;
   display: grid;
   width: 22px;
   height: 22px;
@@ -442,7 +464,7 @@ main,
 }
 
 .product-description summary::after {
-  margin-left: 5px;
+  margin-inline-start: 5px;
   color: var(--red);
   content: '+';
 }
@@ -690,7 +712,7 @@ main,
 .chat-error {
   margin: 0;
   padding: 10px 12px;
-  border-left: 2px solid var(--red);
+  border-inline-start: 2px solid var(--red);
   background: var(--soft-red);
   color: #9b1e33;
   font-size: .7rem;
@@ -710,6 +732,46 @@ main,
 .chat-form input:disabled {
   background: #f4f0eb;
   cursor: not-allowed;
+}
+
+.web-search-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: #514a44;
+  cursor: pointer;
+  font-size: .66rem;
+}
+
+.web-search-toggle input {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  margin: 0;
+  accent-color: var(--red);
+}
+
+.web-search-toggle small {
+  margin-inline-start: auto;
+  color: var(--muted);
+  font-size: .57rem;
+  text-align: end;
+}
+
+.message-sources {
+  display: grid;
+  gap: 4px;
+  margin: 9px 0 0;
+  padding-inline-start: 17px;
+  color: var(--muted);
+  font-size: .64rem;
+}
+
+.message-sources a {
+  color: #8c2738;
+  overflow-wrap: anywhere;
+  text-underline-offset: 2px;
 }
 
 .send-button {
@@ -864,7 +926,7 @@ main,
   }
 
   .art-mark {
-    right: 12px;
+    inset-inline-end: 12px;
     font-size: 6rem;
   }
 

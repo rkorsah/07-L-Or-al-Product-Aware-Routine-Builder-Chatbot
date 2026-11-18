@@ -14,6 +14,8 @@ const chatForm = document.getElementById('chatForm');
 const chatInput = document.getElementById('chatInput');
 const sendMessageButton = document.getElementById('sendMessage');
 const clearChatButton = document.getElementById('clearChat');
+const webSearchToggle = document.getElementById('webSearchToggle');
+const directionToggle = document.getElementById('directionToggle');
 const selectedStorageKey = 'ritual-selected-products';
 
 let products = [];
@@ -235,7 +237,7 @@ function toggleProduct(productId) {
 	saveSelectedProductIds();
 }
 
-function appendChatMessage(role, text) {
+function appendChatMessage(role, text, citations) {
 	const message = document.createElement('div');
 	message.className = `chat-message message-${role}`;
 
@@ -249,6 +251,35 @@ function appendChatMessage(role, text) {
 
 	message.appendChild(label);
 	message.appendChild(body);
+
+	if (role === 'assistant' && Array.isArray(citations) && citations.length > 0) {
+		const sourceList = document.createElement('ul');
+		sourceList.className = 'message-sources';
+		sourceList.setAttribute('aria-label', 'Sources');
+
+		for (let index = 0; index < citations.length; index++) {
+			const citation = citations[index];
+
+			if (!citation || typeof citation.url !== 'string'
+				|| (citation.url.indexOf('https://') !== 0 && citation.url.indexOf('http://') !== 0)) {
+				continue;
+			}
+
+			const sourceItem = document.createElement('li');
+			const sourceLink = document.createElement('a');
+			sourceLink.href = citation.url;
+			sourceLink.target = '_blank';
+			sourceLink.rel = 'noopener noreferrer';
+			sourceLink.textContent = citation.title || citation.url;
+			sourceItem.appendChild(sourceLink);
+			sourceList.appendChild(sourceItem);
+		}
+
+		if (sourceList.childElementCount > 0) {
+			message.appendChild(sourceList);
+		}
+	}
+
 	chatMessages.appendChild(message);
 	chatMessages.scrollTop = chatMessages.scrollHeight;
 	chatWelcome.hidden = true;
@@ -312,6 +343,7 @@ async function requestRoutineAssistant(message) {
 			'Content-Type': 'application/json'
 		},
 		body: JSON.stringify({
+			webSearch: webSearchToggle.checked,
 			products: routineProducts.map(function (product) {
 				return {
 					name: product.name,
@@ -340,7 +372,10 @@ async function requestRoutineAssistant(message) {
 		throw new Error('The routine service response was missing its reply. Please try again.');
 	}
 
-	return data.reply;
+	return {
+		reply: data.reply,
+		citations: Array.isArray(data.citations) ? data.citations : []
+	};
 }
 
 async function sendToAssistant(message) {
@@ -354,10 +389,10 @@ async function sendToAssistant(message) {
 	const thinkingMessage = addThinkingMessage();
 
 	try {
-		const reply = await requestRoutineAssistant(message);
-		conversationHistory.push({ role: 'assistant', content: reply });
+		const result = await requestRoutineAssistant(message);
+		conversationHistory.push({ role: 'assistant', content: result.reply });
 		thinkingMessage.remove();
-		appendChatMessage('assistant', reply);
+		appendChatMessage('assistant', result.reply, result.citations);
 		routineGenerated = true;
 	} catch (error) {
 		thinkingMessage.remove();
@@ -444,6 +479,12 @@ clearChatButton.addEventListener('click', function () {
 	clearChatButton.disabled = true;
 	chatInput.disabled = true;
 	sendMessageButton.disabled = true;
+});
+
+directionToggle.addEventListener('click', function () {
+	const useRightToLeft = document.documentElement.dir !== 'rtl';
+	document.documentElement.dir = useRightToLeft ? 'rtl' : 'ltr';
+	directionToggle.setAttribute('aria-pressed', useRightToLeft);
 });
 
 loadProducts();

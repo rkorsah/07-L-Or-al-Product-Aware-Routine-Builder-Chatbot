@@ -5,7 +5,8 @@ L’Oréal Paris, Garnier, Lancôme, Kiehl’s, Maybelline, La Roche-Posay, and 
 The catalog can be searched and filtered by category. Product descriptions are
 available on each card, selections persist in `localStorage`, and the assistant
 uses the selected product details and conversation history to create a routine
-and answer related follow-up questions.
+and answer related follow-up questions. The chat includes an RTL layout toggle
+and an optional current-web-sources setting that displays clickable citations.
 
 ## Run the page locally
 
@@ -66,6 +67,12 @@ page's JavaScript or sent to the browser.
 The Worker accepts only configured browser origins when an `Origin` header is
 present. CORS is not authentication; for a public production site, consider
 adding Cloudflare rate limiting to help protect your API usage.
+
+The chat's **Use current web sources** option is enabled by default. It sends
+requests through the OpenAI Responses API with its `web_search` tool and shows
+the returned source links under the assistant's reply. Turn it off to use the
+standard chat completion endpoint without live search. Web search may incur
+additional API charges.
 
 ## Product and safety notes
 

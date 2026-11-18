@@ -29,6 +29,15 @@
         <span>ritual<span class="wordmark-period">.</span></span>
       </a>
       <p class="header-note">A more thoughtful beauty routine starts here.</p>
+      <button
+        class="direction-toggle"
+        id="directionToggle"
+        type="button"
+        aria-label="Toggle right-to-left layout"
+        aria-pressed="false"
+      >
+        RTL
+      </button>
       <span class="header-edition">YOUR PERSONAL EDIT</span>
     </header>
 
@@ -142,6 +151,11 @@
                 <span aria-hidden="true">↑</span>
               </button>
             </form>
+            <label class="web-search-toggle" for="webSearchToggle">
+              <input id="webSearchToggle" type="checkbox" checked />
+              <span>Use current web sources</span>
+              <small>Include clickable citations when available</small>
+            </label>
             <p class="chat-note">Beauty guidance, not medical advice. Patch test new products.</p>
           </section>
         </aside>

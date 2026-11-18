@@ -61,9 +61,62 @@ ${productDetails}
 
 For routine requests, build an easy-to-follow order of use using only the products above. Organize skincare into morning and evening steps when useful, explain layering in plain language, and include relevant directions such as rinsing shampoo or following sunscreen labels. For makeup, haircare, and fragrance, give appropriate use guidance. Do not invent ingredients, benefits, or product directions that are not in the supplied descriptions; ask a clarifying question if important information is missing.
 
-Remember the conversation history and answer follow-up questions in context. Keep the conversation limited to skincare, haircare, makeup, fragrance, and related beauty routines. If the user asks about an unrelated topic, briefly steer them back to beauty.
+Remember the conversation history and answer follow-up questions in context. Keep the conversation limited to skincare, haircare, makeup, fragrance, and related beauty routines. If the user asks about an unrelated topic, briefly steer them back to beauty. When web search is available and the user asks for current information, use trustworthy sources, favor official product makers and qualified health organizations, and cite the sources. Do not use web results to introduce products outside the user's selection as routine steps.
 
 Do not diagnose or treat medical conditions, promise results, or present beauty guidance as medical advice. Encourage a patch test for new products. For irritation, persistent symptoms, or ingredient safety concerns, recommend checking the product label and consulting a qualified healthcare professional. Never suggest applying products in or near the eyes unless the label specifically directs it.`;
+}
+
+function getWebSearchResult(data) {
+	const result = {
+		reply: '',
+		citations: []
+	};
+	const seenUrls = [];
+
+	if (!Array.isArray(data.output)) {
+		return result;
+	}
+
+	for (let outputIndex = 0; outputIndex < data.output.length; outputIndex++) {
+		const outputItem = data.output[outputIndex];
+
+		if (outputItem.type !== 'message' || !Array.isArray(outputItem.content)) {
+			continue;
+		}
+
+		for (let contentIndex = 0; contentIndex < outputItem.content.length; contentIndex++) {
+			const contentItem = outputItem.content[contentIndex];
+
+			if (contentItem.type !== 'output_text' || typeof contentItem.text !== 'string') {
+				continue;
+			}
+
+			result.reply += contentItem.text;
+
+			if (!Array.isArray(contentItem.annotations)) {
+				continue;
+			}
+
+			for (let annotationIndex = 0; annotationIndex < contentItem.annotations.length; annotationIndex++) {
+				const annotation = contentItem.annotations[annotationIndex];
+				const citation = annotation;
+
+				if (annotation.type !== 'url_citation' || !citation || typeof citation.url !== 'string'
+					|| (citation.url.indexOf('https://') !== 0 && citation.url.indexOf('http://') !== 0)
+					|| seenUrls.indexOf(citation.url) !== -1) {
+					continue;
+				}
+
+				seenUrls.push(citation.url);
+				result.citations.push({
+					title: citation.title || citation.url,
+					url: citation.url
+				});
+			}
+		}
+	}
+
+	return result;
 }
 
 export default {
@@ -111,6 +164,10 @@ export default {
 			return jsonResponse({ error: 'Select at least one product before chatting.' }, 400, corsHeaders);
 		}
 
+		if (requestData.webSearch !== undefined && typeof requestData.webSearch !== 'boolean') {
+			return jsonResponse({ error: 'The web search setting must be on or off.' }, 400, corsHeaders);
+		}
+
 		if (!Array.isArray(requestData.messages) || requestData.messages.length === 0) {
 			return jsonResponse({ error: 'Add a message to start the routine conversation.' }, 400, corsHeaders);
 		}
@@ -130,17 +187,33 @@ export default {
 
 		let openAIResponse;
 		try {
-			openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+			const webSearchEnabled = requestData.webSearch === true;
+			const apiUrl = webSearchEnabled
+				? 'https://api.openai.com/v1/responses'
+				: 'https://api.openai.com/v1/chat/completions';
+			const apiBody = webSearchEnabled
+				? {
+					model: env.OPENAI_SEARCH_MODEL || 'gpt-6.2-astra',
+					tools: [{
+						type: 'web_search',
+						search_context_size: 'medium'
+					}],
+					input: messages,
+					tool_choice: 'auto'
+				}
+				: {
+					model: env.OPENAI_MODEL || 'gpt-4o-mini',
+					messages: messages,
+					temperature: 0.6
+				};
+
+			openAIResponse = await fetch(apiUrl, {
 				method: 'POST',
 				headers: {
 					'Authorization': `Bearer ${env.OPENAI_API_KEY}`,
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({
-					model: env.OPENAI_MODEL || 'gpt-4o-mini',
-					messages: messages,
-					temperature: 0.6
-				})
+				body: JSON.stringify(apiBody)
 			});
 		} catch (error) {
 			return jsonResponse({ error: 'Could not reach the routine service. Please try again.' }, 502, corsHeaders);
@@ -159,15 +232,23 @@ export default {
 			}, 502, corsHeaders);
 		}
 
-		const reply = openAIData.choices
-			&& openAIData.choices[0]
-			&& openAIData.choices[0].message
-			&& openAIData.choices[0].message.content;
+		const result = requestData.webSearch === true
+			? getWebSearchResult(openAIData)
+			: {
+				reply: openAIData.choices
+					&& openAIData.choices[0]
+					&& openAIData.choices[0].message
+					&& openAIData.choices[0].message.content,
+				citations: []
+			};
 
-		if (typeof reply !== 'string' || reply.trim().length === 0) {
+		if (typeof result.reply !== 'string' || result.reply.trim().length === 0) {
 			return jsonResponse({ error: 'The AI service returned an empty reply.' }, 502, corsHeaders);
 		}
 
-		return jsonResponse({ reply: reply.trim() }, 200, corsHeaders);
+		return jsonResponse({
+			reply: result.reply.trim(),
+			citations: result.citations
+		}, 200, corsHeaders);
 	}
 };
