@@ -1,4 +1,4 @@
-name = "ritual-routine-assistant"
+name = "08-prj-loreal-chatbot"
 main = "worker.js"
 compatibility_date = "2025-01-01"
 

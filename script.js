@@ -385,7 +385,7 @@ function updateSelectedProducts() {
 	selectionCount.textContent = `${selectedProducts.length} selected`;
 	selectedHint.hidden = selectedProducts.length > 0;
 	clearSelectionButton.disabled = selectedProducts.length === 0;
-	generateButton.disabled = products.length === 0 || requestInProgress;
+	generateButton.disabled = selectedProducts.length === 0 || requestInProgress;
 }
 
 function toggleProduct(productId) {
@@ -483,7 +483,7 @@ function addThinkingMessage() {
 
 function setRequestState(isInProgress) {
 	requestInProgress = isInProgress;
-	generateButton.disabled = products.length === 0 || requestInProgress;
+	generateButton.disabled = getSelectedProducts().length === 0 || requestInProgress;
 	chatInput.disabled = !routineGenerated || requestInProgress;
 	sendMessageButton.disabled = !routineGenerated || requestInProgress;
 	clearChatButton.disabled = requestInProgress || conversationHistory.length === 0;
@@ -611,21 +611,15 @@ clearSelectionButton.addEventListener('click', function () {
 });
 
 generateButton.addEventListener('click', function () {
-	if (products.length === 0 || requestInProgress) {
+	const selectedProducts = getSelectedProducts();
+
+	if (selectedProducts.length === 0 || requestInProgress) {
 		return;
 	}
 
-	selectedProductIds = [];
-	for (let index = 0; index < products.length; index++) {
-		selectedProductIds.push(products[index].id);
-	}
-
-	routineProducts = products.slice();
-	renderProducts();
-	updateSelectedProducts();
-	saveSelectedProductIds();
+	routineProducts = selectedProducts.slice();
 	sendToAssistant(
-		'Create or update my personalized routine using only the products provided with this request. The request contains every product in the catalog. Explain the order of application, morning or evening use, and practical frequency or layering notes. Treat all these products as my current selection.'
+		'Create or update my personalized routine using only the selected products provided with this request. Explain the order of application, morning or evening use, and practical frequency or layering notes. Treat these products as my current selection.'
 	);
 });
 

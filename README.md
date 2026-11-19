@@ -54,16 +54,13 @@ page's JavaScript or sent to the browser.
    npx wrangler deploy
    ```
 
-6. Copy the deployed Worker URL (it ends in `workers.dev`) into the
-   `routine-worker-url` meta tag in `index.html`, adding `/api/chat` at the
-   end. For example:
+6. This project uses
+   `https://08-prj-loreal-chatbot.rkorsah.workers.dev/api/chat` in the
+   `routine-worker-url` meta tag in `index.html`. If you change the Worker name
+   or account subdomain, update that URL and keep it ending in `/api/chat`.
 
-   ```html
-   <meta name="routine-worker-url" content="https://your-worker.your-account.workers.dev/api/chat" />
-   ```
-
-7. Publish the static page and visit the Worker health endpoint at
-   `https://your-worker.your-account.workers.dev/health`. It should return
+7. Publish the static page and visit
+   `https://08-prj-loreal-chatbot.rkorsah.workers.dev/health`. It should return
    `{"status":"ok"}`.
 
 The Worker accepts only configured browser origins when an `Origin` header is
