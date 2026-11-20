@@ -20,7 +20,10 @@ py -m http.server 8000
 ```
 
 Then open `http://localhost:8000`. Product browsing, search, selection, and
-saved selections work without an AI service.
+saved selections work without an AI service. Selecting or removing a product
+automatically refreshes the routine after a brief pause; the Generate button
+can also be used to retry or refresh it. Each routine request uses the current
+selection and may incur OpenAI API usage charges.
 
 ## Deploy the Cloudflare Worker
 

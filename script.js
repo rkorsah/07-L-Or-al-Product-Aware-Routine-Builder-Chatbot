@@ -40,6 +40,9 @@ let conversationHistory = [];
 let routineProducts = [];
 let routineGenerated = false;
 let requestInProgress = false;
+let assistantRequestController = null;
+let activeRequestId = 0;
+let routineUpdateTimer = null;
 let ambientAudioContext = null;
 let ambientMasterGain = null;
 let ambientChordTimer = null;
@@ -400,6 +403,50 @@ function toggleProduct(productId) {
 	renderProducts();
 	updateSelectedProducts();
 	saveSelectedProductIds();
+	scheduleRoutineUpdate();
+}
+
+function resetRoutineConversation() {
+	activeRequestId++;
+
+	if (assistantRequestController) {
+		assistantRequestController.abort();
+		assistantRequestController = null;
+	}
+
+	conversationHistory = [];
+	routineProducts = [];
+	routineGenerated = false;
+	chatMessages.replaceChildren(chatWelcome);
+	chatWelcome.hidden = false;
+	setRequestState(false);
+}
+
+function scheduleRoutineUpdate() {
+	if (routineUpdateTimer) {
+		clearTimeout(routineUpdateTimer);
+		routineUpdateTimer = null;
+	}
+
+	resetRoutineConversation();
+
+	if (getSelectedProducts().length === 0) {
+		return;
+	}
+
+	routineUpdateTimer = setTimeout(function () {
+		routineUpdateTimer = null;
+		routineProducts = getSelectedProducts();
+
+		if (routineProducts.length === 0) {
+			return;
+		}
+
+		sendToAssistant(
+			'Create or update my personalized routine using only the selected products provided with this request. Explain the order of application, morning or evening use, and practical frequency or layering notes. Treat these products as my current selection.',
+			true
+		);
+	}, 500);
 }
 
 function appendChatMessage(role, text, citations) {
@@ -449,6 +496,7 @@ function appendChatMessage(role, text, citations) {
 	chatMessages.scrollTop = chatMessages.scrollHeight;
 	chatWelcome.hidden = true;
 	clearChatButton.disabled = false;
+	return message;
 }
 
 function appendChatError(text) {
@@ -495,7 +543,7 @@ function setRequestState(isInProgress) {
 	}
 }
 
-async function requestRoutineAssistant(message) {
+async function requestRoutineAssistant(message, signal) {
 	const workerEndpoint = getWorkerEndpoint();
 
 	if (!workerEndpoint || workerEndpoint.indexOf('YOUR-WORKER-NAME') !== -1) {
@@ -504,6 +552,7 @@ async function requestRoutineAssistant(message) {
 
 	const response = await fetch(workerEndpoint, {
 		method: 'POST',
+		signal: signal,
 		headers: {
 			'Content-Type': 'application/json'
 		},
@@ -543,27 +592,61 @@ async function requestRoutineAssistant(message) {
 	};
 }
 
-async function sendToAssistant(message) {
-	if (requestInProgress) {
+async function sendToAssistant(message, replaceRequest) {
+	if (requestInProgress && !replaceRequest) {
 		return;
 	}
 
-	appendChatMessage('user', message);
-	conversationHistory.push({ role: 'user', content: message });
+	if (assistantRequestController) {
+		assistantRequestController.abort();
+	}
+
+	const requestId = activeRequestId + 1;
+	activeRequestId = requestId;
+	const requestController = new AbortController();
+	assistantRequestController = requestController;
+	const userMessage = { role: 'user', content: message };
+	const userMessageElement = appendChatMessage('user', message);
+	conversationHistory.push(userMessage);
 	setRequestState(true);
 	const thinkingMessage = addThinkingMessage();
 
 	try {
-		const result = await requestRoutineAssistant(message);
+		const result = await requestRoutineAssistant(message, requestController.signal);
+
+		if (requestId !== activeRequestId) {
+			thinkingMessage.remove();
+			userMessageElement.remove();
+			const messageIndex = conversationHistory.indexOf(userMessage);
+
+			if (messageIndex !== -1) {
+				conversationHistory.splice(messageIndex, 1);
+			}
+
+			return;
+		}
+
 		conversationHistory.push({ role: 'assistant', content: result.reply });
 		thinkingMessage.remove();
 		appendChatMessage('assistant', result.reply, result.citations);
 		routineGenerated = true;
 	} catch (error) {
 		thinkingMessage.remove();
-		appendChatError(error.message || 'The routine could not be generated. Please try again.');
+		if (requestId !== activeRequestId) {
+			userMessageElement.remove();
+			const messageIndex = conversationHistory.indexOf(userMessage);
+
+			if (messageIndex !== -1) {
+				conversationHistory.splice(messageIndex, 1);
+			}
+		} else if (error.name !== 'AbortError') {
+			appendChatError(error.message || 'The routine could not be generated. Please try again.');
+		}
 	} finally {
-		setRequestState(false);
+		if (requestId === activeRequestId) {
+			assistantRequestController = null;
+			setRequestState(false);
+		}
 	}
 }
 
@@ -595,6 +678,10 @@ async function loadProducts() {
 		renderProducts();
 		updateSelectedProducts();
 		saveSelectedProductIds();
+
+		if (getSelectedProducts().length > 0) {
+			scheduleRoutineUpdate();
+		}
 	} catch (error) {
 		showCatalogMessage(error.message || 'The product catalog could not be loaded.', true);
 	}
@@ -608,6 +695,7 @@ clearSelectionButton.addEventListener('click', function () {
 	renderProducts();
 	updateSelectedProducts();
 	saveSelectedProductIds();
+	scheduleRoutineUpdate();
 });
 
 generateButton.addEventListener('click', function () {
@@ -617,9 +705,15 @@ generateButton.addEventListener('click', function () {
 		return;
 	}
 
+	if (routineUpdateTimer) {
+		clearTimeout(routineUpdateTimer);
+		routineUpdateTimer = null;
+	}
+
 	routineProducts = selectedProducts.slice();
 	sendToAssistant(
-		'Create or update my personalized routine using only the selected products provided with this request. Explain the order of application, morning or evening use, and practical frequency or layering notes. Treat these products as my current selection.'
+		'Create or update my personalized routine using only the selected products provided with this request. Explain the order of application, morning or evening use, and practical frequency or layering notes. Treat these products as my current selection.',
+		true
 	);
 });
 
@@ -636,14 +730,7 @@ chatForm.addEventListener('submit', function (event) {
 });
 
 clearChatButton.addEventListener('click', function () {
-	conversationHistory = [];
-	routineProducts = [];
-	routineGenerated = false;
-	chatMessages.replaceChildren(chatWelcome);
-	chatWelcome.hidden = false;
-	clearChatButton.disabled = true;
-	chatInput.disabled = true;
-	sendMessageButton.disabled = true;
+	resetRoutineConversation();
 });
 
 directionToggle.addEventListener('click', function () {
