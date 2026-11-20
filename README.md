@@ -47,6 +47,16 @@ page's JavaScript or sent to the browser.
    Enter the key when prompted. Do not put it in `index.html`, `script.js`,
    `wrangler.toml`, or any other checked-in file.
 
+   For local development with `wrangler dev`, put the key in `.dev.vars` next
+   to `wrangler.toml`:
+
+   ```dotenv
+   OPENAI_API_KEY="your-key"
+   ```
+
+   `.dev.vars` is excluded from Git. It only supplies the local Worker; it does
+   not set the secret on the deployed Worker.
+
 4. In `wrangler.toml`, replace `https://YOUR-SITE.example` in
    `ALLOWED_ORIGINS` with the origin serving this page. Keep the local origin
    if you also want to use the deployed Worker while testing at
